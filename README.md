@@ -1,4 +1,4 @@
-# R-Fallow
+# REDD-Abacus-2
 
 The web app of REDD Abacus developed by ICRAF
 
