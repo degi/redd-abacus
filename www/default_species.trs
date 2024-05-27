@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<sexi version="2.1">
+	<SpeciesList>
+		<species SpeciesID="2">
+			<Label>Shorea sp.</Label>
+			<Description>a default Shorea species</Description>
+			<AdultSize>15.0</AdultSize>
+			<CrownWidthA>1.6</CrownWidthA>
+			<CrownWidthB>14.0</CrownWidthB>
+			<DbhMaximum>1.8</DbhMaximum>
+			<DbhK>0.025</DbhK>
+			<DbhC>1.3</DbhC>
+			<LightSensiTree>1.5</LightSensiTree>
+			<LightFlexiTree>0.3</LightFlexiTree>
+			<LightSensiCrown>1.5</LightSensiCrown>
+			<LightFlexiCrown>0.3</LightFlexiCrown>
+			<LightMininum>0.1</LightMininum>
+			<LightOptimum>1.0</LightOptimum>
+			<HeightA>31.0</HeightA>
+			<HeightB>0.79</HeightB>
+			<HeigthMaxAbsolute>50.0</HeigthMaxAbsolute>
+			<DbhInitial>0.01</DbhInitial>
+			<Mortality2thProbability>0.5</Mortality2thProbability>
+			<MortalityModifier>15.0</MortalityModifier>
+			<RootZoneModifier>1.0</RootZoneModifier>
+			<SurvivalProbability>0.95</SurvivalProbability>
+			<CrownPorosity>0.5</CrownPorosity>
+			<ColorBlue>15</ColorBlue>
+			<ColorGreen>255</ColorGreen>
+			<ColorRed>15</ColorRed>
+			<ImperataCompetitionFactor>0.2</ImperataCompetitionFactor>
+			<RegenerationBetaShape1>2.0</RegenerationBetaShape1>
+			<RegenerationBetaShape2>2.0</RegenerationBetaShape2>
+			<RegenerationMetaComposition>1.0</RegenerationMetaComposition>
+			<RegenerationRelativeAbundance>1.0</RegenerationRelativeAbundance>
+			<CrownShyness>1</CrownShyness>
+			<IndexOfRootAnchoring>1.5</IndexOfRootAnchoring>
+			<IndexOfRootBinding>1.0</IndexOfRootBinding>
+			<WoodDensity>0.63</WoodDensity>
+			<Tapped>false</Tapped>
+			<MinTappingSize>0.15</MinTappingSize>
+		</species>
+	</SpeciesList>
+</sexi>
