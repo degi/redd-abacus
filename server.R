@@ -1337,12 +1337,21 @@ the average of emission factor between before-and-after converted land covers.</
   
   ### PROJECTION ######################
   
+  
   output$edit_scenario <- renderAbacuslib({
     if (is.null(v$abacus_data)) {
       return(NULL)
     }
     print("plot projection")
     plot(v$abacus_data, isolate(v$scenario))
+  })
+  
+  output$n_scenario <- renderText({
+    df <- v$scenario$tpm
+    if (is.null(df)) {
+      return(0)
+    }
+    return(nrow(df[df$lock == 1,]))
   })
   
   observeEvent(input$edit_scenario_baseline, {
@@ -1356,7 +1365,7 @@ the average of emission factor between before-and-after converted land covers.</
     emission_val$bl_sum <-
       sum(v$abacus_baseline$emission$iteration_emission$emission)
     
-    print("update baseline")
+    # print("update baseline")
   })
   
   final_area <- reactiveValues(
@@ -1419,7 +1428,7 @@ the average of emission factor between before-and-after converted land covers.</
     apply_final_lc_area(final_area$sc_lc_df[c(1:3),])
     v$scenario <- v$abacus_scenario$scenario
     # print(v$scenario)
-    print("scenario update")
+    # print("scenario update")
     
   })
   

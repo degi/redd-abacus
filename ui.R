@@ -199,6 +199,7 @@ ui <-
             	--bs-accordion-btn-bg: #FEF7F8;
             	--bs-accordion-active-color: black;
             	--bs-accordion-active-bg: #FCE5E6;
+            	--bs-accordion-border-width: 0px;
             }
           "
             
@@ -474,6 +475,15 @@ ui <-
         style = css(grid_template_columns = "3fr 2fr"),
         card(
           card_header("Projected land cover changes", class = "bg_theme"),
+          accordion(open = F,
+                    accordion_panel(
+                      "How to modify the projection",
+                      tags$li("Select the trageted period by clicking the year axis on the area chart below"),
+                      tags$li("Click on the the land cover label or bar chart to edit the scenario"),
+                      tags$li("The land cover change scenario is using hectare by default.
+            To modify by the percentage, add \"%\" character after the number"
+                      )
+                    )),
           abacuslibOutput("edit_scenario", width = "100%")
         ),
         card(
