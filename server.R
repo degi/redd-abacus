@@ -2490,7 +2490,7 @@ server <- function(input, output, session) {
       content = function(file) {
         setwd(tempdir())
         fs <- c()
-        for (i in c(1:length(v$scenario_list))) {
+        for (si in c(1:length(v$scenario_list))) {
           s <- v$scenario_list[[i]]
           iv <- unlist(strsplit(d[["var"]], split = ".", fixed = T))
           df <- s[[iv[1]]]
@@ -2504,7 +2504,7 @@ server <- function(input, output, session) {
           if (nrow(df) == 0)
             return()
           
-          f <- paste0(d[["file"]], "_", i, ".csv")
+          f <- paste0(d[["file"]], "_", si, ".csv")
           write.csv(df, f, row.names = F, na = "")
           fs <- c(fs, f)
         }
