@@ -32,6 +32,7 @@
 .jexcel>div>table>thead {
     border-left: 1px solid transparent;
     border-right: 1px solid transparent;
+    height: 30px;
 }
 
 .jexcel>div>table>tbody>tr>td {

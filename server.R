@@ -1,12 +1,3 @@
-# library(excelR)
-# library(RColorBrewer)
-# library(abacuslib)
-# library(jsonlite)
-# library(reshape2)
-# library(htmltools)
-# library(leafem)
-# library(yaml)
-# library(paletteer)
 
 server <- function(input, output, session) {
   vars <-
@@ -878,7 +869,9 @@ server <- function(input, output, session) {
                lc1_id ~ lc2_id,
                value.var = "area",
                fun.aggregate = sum)
+    c1 <- m[1]
     m[m == 0] <- NA
+    m[1] <- c1
     if (nrow(lcz) > 1) {
       if (ncol(m) == 2) {
         m$TOTAL <- m[[2]]
@@ -892,6 +885,7 @@ server <- function(input, output, session) {
     lmax <-
       max(nchar(v$lc_list_df[v$lc_list_df$lc_id %in% m$lc1_id, "label"]))
     lc_width <- lmax * 8
+    
     reactable(
       m,
       pagination = F,
@@ -1328,6 +1322,7 @@ server <- function(input, output, session) {
     v$n_iteration <- p$project$n_iteration
     v$map1_date <- as.Date(paste0(p$project$baseyear0, "-07-01"))
     v$map2_date <- as.Date(paste0(p$project$baseyear1, "-07-01"))
+    removeModal()
   })
   
   get_period_label <- function(iteration) {
@@ -1483,6 +1478,8 @@ server <- function(input, output, session) {
     } else {
       lc_df <- merge(v$lc_list_df, v$cstock_list, by = "lc_id")
     }
+    
+    if(length(v$scenario_list) == 0) return()
     for (i in 1:length(v$scenario_list)) {
       cn <- c(lc_table_def, "c")
       sclc <- v$scenario_list[[i]]$abacus_scenario$scenario$landcover
@@ -1692,6 +1689,7 @@ server <- function(input, output, session) {
     
     data <- final_area$bl_lc_df[c("lc_id", "lc", "area")]
     colnames(data) <- c("lc_id", "label", "baseline")
+    
     if (!is.null(final_area$sc_lc_df)) {
       data <- merge(
         x = data,
@@ -1705,6 +1703,7 @@ server <- function(input, output, session) {
       data$label <- data$lc
       data <- data[order(data$baseline, decreasing = T), ]
     }
+    # print(data)
     fig <- plot_ly(
       data,
       x = ~ label,
@@ -1716,6 +1715,7 @@ server <- function(input, output, session) {
     )
     
     if (!is.null(final_area$sc_lc_df)) {
+      # print(final_area$sc_lc_df)
       if (input$box_final_area_full_screen) {
         for (i in c(1:length(v$scenario_list))) {
           sc <- v$scenario_list[[i]]
@@ -1769,7 +1769,7 @@ server <- function(input, output, session) {
         paper_bgcolor = "transparent",
         plot_bgcolor = color_theme$info
       ) %>%
-      config(displayModeBar = F) %>%
+      plotly::config(displayModeBar = F) %>%
       htmlwidgets::onRender(
         "function(el) {
       var ro = new ResizeObserver(function() {
@@ -2187,7 +2187,7 @@ server <- function(input, output, session) {
         plot_bgcolor = "#4D4D4D"
         # plot_bgcolor = "transparent"
       ) %>%
-      config(displayModeBar = F) %>%
+      plotly::config(displayModeBar = F) %>%
       htmlwidgets::onRender(
         "function(el) {
       var ro = new ResizeObserver(function() {
@@ -2321,7 +2321,7 @@ server <- function(input, output, session) {
   
   upload_parameter <- function(dpath) {
     file_list <- NULL
-    try(file_list <- unzip(dpath, list = TRUE), silent = T)
+    try({file_list <- unzip(dpath, list = TRUE)}, silent = T)
     if (is.null(file_list)) {
       show_alert_file_error("compressed (zip)")
       return()

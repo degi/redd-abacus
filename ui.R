@@ -1,14 +1,3 @@
-# library(shiny)
-# library(bslib)
-# library(bsicons)
-# library(abacuslib)
-# library(htmltools)
-# library(reactable)
-# library(plotly)
-# library(leaflet)
-# library(stars)
-# library(mapview)
-# library(excelR)
 
 generate_download_link <- function(df, title) {
   p(p(tags$b(title)), apply(df, 1, function(x) {
@@ -417,6 +406,7 @@ ui <-
     bg = "#FCE5E6",
     header =
       tags$head(
+        tags$link(rel="shortcut icon", href="favicon.ico"),
         tags$style(
           HTML(
             ".bg_theme{background-color: #FCE5E6;}
@@ -438,11 +428,16 @@ ui <-
         tags$link(rel = "stylesheet", href = "jsuites.css", type = "text/css"),
         tags$link(rel = "stylesheet", type = "text/css", href = "table.css")
       ),
+    window_title = "REDD Abacus 2",
+    title = 
+    #   HTML(
+    #   "<span style='color:#E42E34; background:#540b0e; padding:2px 20px 4px 20px; border-radius:15px'>
+    #   <b>REDD<span style='color: white;'>Abacus</span>2</b></span>"
+    # )
+    span(tags$img(height = 18, src = "images/abacus2_logo_white.svg", style = "margin-right:5px"), 
+         "REDD", span("Abacus", style = "color: white;", .noWS = c('before', "after") ), "2", 
+         style = "color:#E42E34; background:#540b0e; padding:2px 20px 4px 20px; border-radius:15px; font-weight:bold"),
     
-    title = HTML(
-      "<span style='color:#E42E34; background:#540b0e; padding:2px 20px 4px 20px; border-radius:15px'>
-      <b>REDD<span style='color: white;'>Abacus</span>2</b></span>"
-    ),
     underline = TRUE,
     
     nav_panel(

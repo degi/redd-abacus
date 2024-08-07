@@ -78,27 +78,18 @@ table_file_df <- data.frame(
     "cstock_list",
     "zone_list_df",
     "other_emission_df"
-    # "scenario.tpm",
-    # "scenario.baseline_tpm",
-    # "scenario.baseline_area"
   ),
   file = c(
     "landcover.csv",
     "carbonstock.csv",
     "zonation.csv",
     "other_emission.csv"
-    # "scenario_activities.csv",
-    # "scenario_tpm.csv",
-    # "baseline_lc_area.csv"
   ),
   label = c(
     "Land cover legend",
     "Carbon stock data",
     "Zonation legend",
     "Other emission data"
-    # "Scenario activities",
-    # "Transition projection matrix of the scenario",
-    # "Baseline land cover area"
   )
 )
 
