@@ -1387,13 +1387,16 @@ server <- function(input, output, session) {
   observeEvent(input$edit_scenario_baseline, {
     v$abacus_baseline <- input$edit_scenario_baseline
     v$n_iteration <- v$abacus_baseline$iteration
+    
+    v$abacus_data$project$n_iteration <- v$n_iteration
+    
     final_area$bl_lc_df <-
       get_lc_area_total(v$abacus_baseline$projection$lc_sum_area)
     
     sc <- active_scenario()$abacus_scenario
-    if (is.null(sc)) {
-      apply_final_lc_area(final_area$bl_lc_df[c(1:3), ])
-    }
+    # if (is.null(sc)) {
+    #   apply_final_lc_area(final_area$bl_lc_df[c(1:3), ])
+    # }
     emission_val$bl_sum <-
       sum(v$abacus_baseline$emission$iteration_emission$emission)
     
@@ -1628,6 +1631,8 @@ server <- function(input, output, session) {
     # print("*** update scenario")
     # print(length(v$scenario_list))
     sc <- input$edit_scenario_update
+    # print("update")
+    # print(sc)
     ## set active scenario ##
     v$scenario_list[[v$selected_scenario_id]]$abacus_scenario <- sc
     
