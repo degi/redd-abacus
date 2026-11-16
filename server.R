@@ -5668,18 +5668,23 @@ observeEvent(v$map_catalog_version, {
     zone_rec <- if (has_zone) records[[zone_map_id]] else NULL
     zone_stars <- if (!is.null(zone_rec) && !is.null(zone_rec$stars)) zone_rec$stars else NULL
 
-    m1_mem <- if (inherits(rec1$stars, "stars_proxy")) stars::st_as_stars(rec1$stars) else rec1$stars
-    m2_mem <- if (inherits(rec2$stars, "stars_proxy")) stars::st_as_stars(rec2$stars) else rec2$stars
+    m1_mem <- if (inherits(rec1$stars, "stars_proxy")) tryCatch(stars::st_as_stars(rec1$stars), error = function(e) NULL) else rec1$stars
+    m2_mem <- if (inherits(rec2$stars, "stars_proxy")) tryCatch(stars::st_as_stars(rec2$stars), error = function(e) NULL) else rec2$stars
     if (is.null(m1_mem) || is.null(m2_mem)) return(v$lc_changes_df)
 
-    m2_mem <- align_stars_to_reference(m2_mem, m1_mem)
+    m2_mem <- tryCatch(align_stars_to_reference(m2_mem, m1_mem), error = function(e) NULL)
     if (is.null(m2_mem)) return(v$lc_changes_df)
+
+    cell_ha <- pixel_ha(m1_mem)
+    v1 <- as.vector(m1_mem[[1]])
+    v2 <- as.vector(m2_mem[[1]])
+    valid <- !is.na(v1) & !is.na(v2)
 
     layers <- list()
     if (!is.null(zone_stars)) {
-      zz <- if (inherits(zone_stars, "stars_proxy")) stars::st_as_stars(zone_stars) else zone_stars
+      zz <- if (inherits(zone_stars, "stars_proxy")) tryCatch(stars::st_as_stars(zone_stars), error = function(e) NULL) else zone_stars
       if (!is.null(zz)) {
-        zz <- align_stars_to_reference(zz, m1_mem)
+        zz <- tryCatch(align_stars_to_reference(zz, m1_mem), error = function(e) NULL)
         if (!is.null(zz)) {
           vals <- zz[[1]]
           vals[is.na(vals)] <- all_id
@@ -5689,20 +5694,37 @@ observeEvent(v$map_catalog_version, {
       }
     }
 
-    if (length(layers) == 0) {
-      m <- suppressWarnings(as.data.frame(table(base::c(m1_mem, m2_mem))))
-      colnames(m) <- base::c("lc1_id", "lc2_id", "area")
-    } else {
-      combined <- do.call(base::c, c(list(m1_mem, m2_mem), layers))
-      m <- suppressWarnings(as.data.frame(table(combined)))
-      colnames(m) <- base::c("lc1_id", "lc2_id", "zone_id", "area")
-      m$zone_id[which(m$zone_id == all_id)] <- NA
-    }
-
-    cell_ha <- pixel_ha(m1_mem)
     rm(m1_mem, m2_mem)
 
-    m <- m[m$area > 0, ]
+    if (!any(valid)) {
+      rm(v1, v2, valid)
+      invisible(gc(verbose = FALSE))
+      return(NULL)
+    }
+
+    m <- tryCatch({
+      if (length(layers) == 0) {
+        tab <- table(lc1_id = v1[valid], lc2_id = v2[valid])
+        as.data.frame(tab, responseName = "area", stringsAsFactors = FALSE)
+      } else {
+        zv <- as.vector(layers[[1]][[1]])[valid]
+        tab <- table(lc1_id = v1[valid], lc2_id = v2[valid], zone_id = zv)
+        res <- as.data.frame(tab, responseName = "area", stringsAsFactors = FALSE)
+        res$zone_id[which(res$zone_id == as.character(all_id))] <- NA
+        res
+      }
+    }, error = function(e) {
+      warning("Memory limit in abacost_lc_changes table: ", conditionMessage(e))
+      NULL
+    })
+
+    rm(v1, v2, valid)
+    if (exists("layers", inherits = FALSE)) rm(layers)
+    invisible(gc(verbose = FALSE))
+
+    if (is.null(m)) return(NULL)
+
+    m <- m[m$area > 0, , drop = FALSE]
     if (nrow(m) == 0) return(NULL)
 
     idcol <- setdiff(colnames(m), "area")
@@ -6201,31 +6223,60 @@ observeEvent(v$map_catalog_version, {
       layer_names <- c(layer_names, nm)
     }
 
-    if (length(layers) == 0) {
-      m <- suppressWarnings(as.data.frame(table(base::c(m1_mem, m2_mem))))
-
-      colnames(m) <- base::c("lc1_id", "lc2_id", "area")
-    } else {
-      combined <- do.call(base::c, c(list(m1_mem, m2_mem), layers))
-
-      m <- suppressWarnings(as.data.frame(table(combined)))
-
-      colnames(m) <- base::c("lc1_id", "lc2_id",
-                             paste0("zone_", layer_names), "area")
-    }
-
-    ## Capture pixel area before freeing map memory.
-
     cell_ha <- pixel_ha(m1_mem)
+    v1 <- as.vector(m1_mem[[1]])
+    v2 <- as.vector(m2_mem[[1]])
+    valid <- !is.na(v1) & !is.na(v2)
 
     rm(m1_mem, m2_mem)
 
-    gc(verbose = FALSE)
+    if (!any(valid)) {
+      rm(v1, v2, valid)
+      invisible(gc(verbose = FALSE))
+      v$lc_changes_df <- NULL
+      return()
+    }
 
-    m <- m[m$area > 0, ]
+    m <- tryCatch({
+      if (length(layers) == 0) {
+        tab <- table(lc1_id = v1[valid], lc2_id = v2[valid])
+        as.data.frame(tab, responseName = "area", stringsAsFactors = FALSE)
+      } else {
+        args_list <- list(lc1_id = v1[valid], lc2_id = v2[valid])
+        for (i in seq_along(layers)) {
+          nm <- if (!is.null(layer_names) && i <= length(layer_names)) paste0("zone_", layer_names[i]) else paste0("zone_", i)
+          args_list[[nm]] <- as.vector(layers[[i]][[1]])[valid]
+        }
+        tab <- do.call(table, args_list)
+        res <- as.data.frame(tab, responseName = "area", stringsAsFactors = FALSE)
+        zone_cols <- grep("^zone_", colnames(res), value = TRUE)
+        for (zc in zone_cols) {
+          res[[zc]][which(res[[zc]] == as.character(all_id))] <- NA
+        }
+        res
+      }
+    }, error = function(e) {
+      warning("Memory limit in update_lc_matrix table: ", conditionMessage(e))
+      NULL
+    })
+
+    rm(v1, v2, valid)
+    if (exists("layers", inherits = FALSE)) rm(layers)
+    if (exists("args_list", inherits = FALSE)) rm(args_list)
+    invisible(gc(verbose = FALSE))
+
+    if (is.null(m)) {
+      v$lc_changes_df <- NULL
+      return()
+    }
+
+    m <- m[m$area > 0, , drop = FALSE]
+    if (nrow(m) == 0) {
+      v$lc_changes_df <- NULL
+      return()
+    }
 
     idcol <- setdiff(colnames(m), "area")
-
     m[idcol] <- lapply(m[idcol], function(x) as.numeric(as.character(x)))
 
     ## Convert the "All zones" sentinel back to NA in zone columns. The
