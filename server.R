@@ -9355,8 +9355,28 @@ map_render_ids <- c("mapc", "map_ghg", "map_all")
     v$map_catalog_version
     df_display <- v$other_emission_display_df
 
-    m1 <- if (inherits(v$map1_stars, "stars_proxy")) stars::st_as_stars(v$map1_stars) else v$map1_stars
-    m2 <- if (inherits(v$map2_stars, "stars_proxy")) stars::st_as_stars(v$map2_stars) else v$map2_stars
+    m1 <- tryCatch({
+      if (inherits(v$map1_stars, "stars_proxy")) stars::st_as_stars(v$map1_stars) else v$map1_stars
+    }, error = function(e) {
+      warning("Could not allocate memory for map1: ", conditionMessage(e))
+      showNotification(
+        paste("Raster map is too large to load into memory (exceeds available RAM):", conditionMessage(e)),
+        type = "error",
+        duration = 10
+      )
+      NULL
+    })
+    m2 <- tryCatch({
+      if (inherits(v$map2_stars, "stars_proxy")) stars::st_as_stars(v$map2_stars) else v$map2_stars
+    }, error = function(e) {
+      warning("Could not allocate memory for map2: ", conditionMessage(e))
+      showNotification(
+        paste("Raster map is too large to load into memory (exceeds available RAM):", conditionMessage(e)),
+        type = "error",
+        duration = 10
+      )
+      NULL
+    })
 
     if (is.null(m1) || is.null(m2)) {
       v$ghg_ready <- FALSE
@@ -9411,7 +9431,8 @@ map_render_ids <- c("mapc", "map_ghg", "map_all")
       z_vals <- list()
       for (rid in names(zone_records)) {
         zs <- zone_records[[rid]]$stars
-        zs_mem <- if (inherits(zs, "stars_proxy")) stars::st_as_stars(zs) else zs
+        zs_mem <- if (inherits(zs, "stars_proxy")) tryCatch(stars::st_as_stars(zs), error = function(e) NULL) else zs
+        if (is.null(zs_mem)) next
         if (!identical(stars::st_dimensions(m1), stars::st_dimensions(zs_mem))) {
           zs_mem <- align_stars_to_reference(zs_mem, m1)
         }
@@ -9422,7 +9443,7 @@ map_render_ids <- c("mapc", "map_ghg", "map_all")
 
       # Fallback to single v$mapz_stars if z_vals is empty
       if (!is.null(v$mapz_stars) && length(z_vals) == 0) {
-        mzs <- if (inherits(v$mapz_stars, "stars_proxy")) stars::st_as_stars(v$mapz_stars) else v$mapz_stars
+        mzs <- if (inherits(v$mapz_stars, "stars_proxy")) tryCatch(stars::st_as_stars(v$mapz_stars), error = function(e) NULL) else v$mapz_stars
         if (!identical(stars::st_dimensions(m1), stars::st_dimensions(mzs)))
           mzs <- align_stars_to_reference(mzs, m1)
         if (!is.null(mzs) && identical(stars::st_dimensions(m1), stars::st_dimensions(mzs)))
